@@ -3,21 +3,28 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { Plus } from "lucide-react";
-import ClientForm from "./ClientForm";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface Client {
   id: string;
   name: string;
   email: string | null;
   phone: string | null;
-  address: string | null;
   created_at: string;
 }
 
 export default function ClientList() {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
     fetchClients();
@@ -39,49 +46,49 @@ export default function ClientList() {
     }
   };
 
-  if (loading) return <div>Cargando clientes...</div>;
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center">Cargando clientes...</div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold">Clientes</h2>
-        <button
-          onClick={() => setShowForm(true)}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-        >
-          <Plus className="w-5 h-5 mr-2" />
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle>Clientes</CardTitle>
+        <Button>
+          <Plus className="w-4 h-4 mr-2" />
           Nuevo Cliente
-        </button>
-      </div>
-
-      {showForm && (
-        <ClientForm
-          onSuccess={() => {
-            setShowForm(false);
-            fetchClients();
-          }}
-          onCancel={() => setShowForm(false)}
-        />
-      )}
-
-      <div className="bg-white shadow rounded-lg overflow-hidden">
-        <ul className="divide-y divide-gray-200">
-          {clients.map((client) => (
-            <li key={client.id} className="px-6 py-4">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h3 className="text-lg font-medium">{client.name}</h3>
-                  <p className="text-sm text-gray-600">{client.email}</p>
-                  <p className="text-sm text-gray-600">{client.phone}</p>
-                </div>
-                <div className="text-sm text-gray-500">
+        </Button>
+      </CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Nombre</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Teléfono</TableHead>
+              <TableHead>Fecha de Registro</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {clients.map((client) => (
+              <TableRow key={client.id}>
+                <TableCell className="font-medium">{client.name}</TableCell>
+                <TableCell>{client.email || "-"}</TableCell>
+                <TableCell>{client.phone || "-"}</TableCell>
+                <TableCell>
                   {new Date(client.created_at).toLocaleDateString()}
-                </div>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
   );
 }

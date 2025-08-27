@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import InteractionForm from "./InteractionForm";
 
 interface Interaction {
@@ -68,19 +70,41 @@ export default function InteractionList() {
     }
   };
 
-  if (loading) return <div>Cargando interacciones...</div>;
+  const getTypeText = (type: string) => {
+    switch (type) {
+      case "llamada":
+        return "Llamada";
+      case "email":
+        return "Email";
+      case "visita":
+        return "Visita";
+      case "cotizacion":
+        return "Cotización";
+      case "seguimiento":
+        return "Seguimiento";
+      default:
+        return type;
+    }
+  };
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center">Cargando interacciones...</div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold">Interacciones</h2>
-        <button
-          onClick={() => setShowForm(true)}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-        >
-          <Plus className="w-5 h-5 mr-2" />
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">Interacciones</h2>
+        <Button onClick={() => setShowForm(true)}>
+          <Plus className="w-4 h-4 mr-2" />
           Nueva Interacción
-        </button>
+        </Button>
       </div>
 
       {showForm && (
@@ -93,44 +117,53 @@ export default function InteractionList() {
         />
       )}
 
-      <div className="space-y-4">
-        {interactions.map((interaction) => (
-          <div key={interaction.id} className="bg-white shadow rounded-lg p-6">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center space-x-2 mb-2">
-                  <span className="text-lg">
-                    {getInteractionIcon(interaction.type)}
-                  </span>
-                  <h3 className="text-lg font-medium capitalize">
-                    {interaction.type} - {interaction.clients.name}
-                  </h3>
+      <Card>
+        <CardHeader>
+          <CardTitle>Historial de Interacciones</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {interactions.map((interaction) => (
+              <div key={interaction.id} className="border rounded-lg p-4">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <span className="text-lg">
+                        {getInteractionIcon(interaction.type)}
+                      </span>
+                      <h3 className="text-lg font-medium">
+                        {getTypeText(interaction.type)} -{" "}
+                        {interaction.clients.name}
+                      </h3>
+                    </div>
+
+                    {interaction.sofas && (
+                      <p className="text-sm text-gray-600 mb-2">
+                        <strong>Trabajo:</strong>{" "}
+                        {interaction.sofas.description}
+                      </p>
+                    )}
+
+                    {interaction.notes && (
+                      <p className="text-gray-700 mb-2">{interaction.notes}</p>
+                    )}
+
+                    <p className="text-sm text-gray-500">
+                      {new Date(interaction.created_at).toLocaleString()}
+                    </p>
+                  </div>
                 </div>
-
-                {interaction.sofas && (
-                  <p className="text-sm text-gray-600 mb-2">
-                    <strong>Trabajo:</strong> {interaction.sofas.description}
-                  </p>
-                )}
-
-                {interaction.notes && (
-                  <p className="text-gray-700 mb-2">{interaction.notes}</p>
-                )}
-
-                <p className="text-sm text-gray-500">
-                  {new Date(interaction.created_at).toLocaleString()}
-                </p>
               </div>
-            </div>
+            ))}
           </div>
-        ))}
-      </div>
 
-      {interactions.length === 0 && (
-        <div className="text-center py-12 text-gray-500">
-          No hay interacciones registradas
-        </div>
-      )}
+          {interactions.length === 0 && (
+            <div className="text-center py-8 text-gray-500">
+              No hay interacciones registradas
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

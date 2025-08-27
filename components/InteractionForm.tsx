@@ -2,6 +2,17 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
 interface InteractionFormProps {
   onSuccess: () => void;
@@ -106,11 +117,15 @@ export default function InteractionForm({
   };
 
   const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
+  };
+
+  const handleSelectChange = (name: string, value: string) => {
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -123,103 +138,93 @@ export default function InteractionForm({
         <h2 className="text-xl font-semibold mb-4">Nueva Interacción</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Cliente
-            </label>
-            <select
-              name="client_id"
+          <div className="space-y-2">
+            <Label htmlFor="client_id">Cliente</Label>
+            <Select
               value={formData.client_id}
-              onChange={handleChange}
+              onValueChange={(value) => handleSelectChange("client_id", value)}
               required
-              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="">Seleccionar cliente</option>
-              {clients.map((client) => (
-                <option key={client.id} value={client.id}>
-                  {client.name}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger>
+                <SelectValue placeholder="Seleccionar cliente" />
+              </SelectTrigger>
+              <SelectContent>
+                {clients.map((client) => (
+                  <SelectItem key={client.id} value={client.id}>
+                    {client.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             {clientsLoading && (
-              <p className="text-sm text-gray-500 mt-1">Cargando clientes...</p>
+              <p className="text-sm text-gray-500">Cargando clientes...</p>
             )}
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Trabajo relacionado (opcional)
-            </label>
-            <select
-              name="sofa_id"
+          <div className="space-y-2">
+            <Label htmlFor="sofa_id">Trabajo relacionado (opcional)</Label>
+            <Select
               value={formData.sofa_id}
-              onChange={handleChange}
-              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              onValueChange={(value) => handleSelectChange("sofa_id", value)}
               disabled={!formData.client_id}
             >
-              <option value="">Seleccionar trabajo</option>
-              {filteredSofas.map((sofa) => (
-                <option key={sofa.id} value={sofa.id}>
-                  {sofa.description}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger>
+                <SelectValue placeholder="Seleccionar trabajo" />
+              </SelectTrigger>
+              <SelectContent>
+                {filteredSofas.map((sofa) => (
+                  <SelectItem key={sofa.id} value={sofa.id}>
+                    {sofa.description}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             {formData.client_id && filteredSofas.length === 0 && (
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-gray-500">
                 No hay trabajos para este cliente
               </p>
             )}
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Tipo de Interacción
-            </label>
-            <select
-              name="type"
+          <div className="space-y-2">
+            <Label htmlFor="type">Tipo de Interacción</Label>
+            <Select
               value={formData.type}
-              onChange={handleChange}
+              onValueChange={(value) => handleSelectChange("type", value)}
               required
-              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="llamada">Llamada</option>
-              <option value="email">Email</option>
-              <option value="visita">Visita</option>
-              <option value="cotizacion">Cotización</option>
-              <option value="seguimiento">Seguimiento</option>
-              <option value="otro">Otro</option>
-            </select>
+              <SelectTrigger>
+                <SelectValue placeholder="Seleccionar tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="llamada">Llamada</SelectItem>
+                <SelectItem value="email">Email</SelectItem>
+                <SelectItem value="visita">Visita</SelectItem>
+                <SelectItem value="cotizacion">Cotización</SelectItem>
+                <SelectItem value="seguimiento">Seguimiento</SelectItem>
+                <SelectItem value="otro">Otro</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Notas
-            </label>
-            <textarea
+          <div className="space-y-2">
+            <Label htmlFor="notes">Notas</Label>
+            <Textarea
               name="notes"
               value={formData.notes}
               onChange={handleChange}
               rows={4}
-              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               placeholder="Detalles de la interacción..."
             />
           </div>
 
           <div className="flex justify-end space-x-3 pt-4">
-            <button
-              type="button"
-              onClick={onCancel}
-              className="px-4 py-2 text-gray-600 hover:text-gray-800"
-            >
+            <Button type="button" variant="outline" onClick={onCancel}>
               Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-            >
+            </Button>
+            <Button type="submit" disabled={loading}>
               {loading ? "Guardando..." : "Guardar"}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

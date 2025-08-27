@@ -2,6 +2,17 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
 interface SofaFormProps {
   onSuccess: () => void;
@@ -72,13 +83,18 @@ export default function SofaForm({ onSuccess, onCancel }: SofaFormProps) {
   };
 
   const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     setFormData((prev) => ({
       ...prev,
       [e.target.name]: e.target.value,
+    }));
+  };
+
+  const handleSelectChange = (name: string, value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
     }));
   };
 
@@ -88,105 +104,91 @@ export default function SofaForm({ onSuccess, onCancel }: SofaFormProps) {
         <h2 className="text-xl font-semibold mb-4">Nuevo Trabajo</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Cliente
-            </label>
-            <select
-              name="client_id"
+          <div className="space-y-2">
+            <Label htmlFor="client_id">Cliente</Label>
+            <Select
               value={formData.client_id}
-              onChange={handleChange}
+              onValueChange={(value) => handleSelectChange("client_id", value)}
               required
-              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             >
-              <option value="">Seleccionar cliente</option>
-              {clients.map((client) => (
-                <option key={client.id} value={client.id}>
-                  {client.name}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger>
+                <SelectValue placeholder="Seleccionar cliente" />
+              </SelectTrigger>
+              <SelectContent>
+                {clients.map((client) => (
+                  <SelectItem key={client.id} value={client.id}>
+                    {client.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             {clientsLoading && (
-              <p className="text-sm text-gray-500 mt-1">Cargando clientes...</p>
+              <p className="text-sm text-gray-500">Cargando clientes...</p>
             )}
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Descripción del trabajo
-            </label>
-            <textarea
+          <div className="space-y-2">
+            <Label htmlFor="description">Descripción del trabajo</Label>
+            <Textarea
               name="description"
               value={formData.description}
               onChange={handleChange}
               required
               rows={4}
-              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               placeholder="Describa el trabajo a realizar..."
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Estado
-            </label>
-            <select
-              name="status"
+          <div className="space-y-2">
+            <Label htmlFor="status">Estado</Label>
+            <Select
               value={formData.status}
-              onChange={handleChange}
-              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              onValueChange={(value) => handleSelectChange("status", value)}
             >
-              <option value="pendiente">Pendiente</option>
-              <option value="en_proceso">En Proceso</option>
-              <option value="completado">Completado</option>
-              <option value="entregado">Entregado</option>
-            </select>
+              <SelectTrigger>
+                <SelectValue placeholder="Seleccionar estado" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pendiente">Pendiente</SelectItem>
+                <SelectItem value="en_proceso">En Proceso</SelectItem>
+                <SelectItem value="completado">Completado</SelectItem>
+                <SelectItem value="entregado">Entregado</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Costo Estimado (MXN)
-            </label>
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="estimated_cost">Costo Estimado (MXN)</Label>
+            <Input
               type="number"
               name="estimated_cost"
               value={formData.estimated_cost}
               onChange={handleChange}
               step="0.01"
               min="0"
-              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               placeholder="0.00"
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
+          <div className="space-y-2">
+            <Label htmlFor="estimated_delivery">
               Fecha de Entrega Estimada
-            </label>
-            <input
+            </Label>
+            <Input
               type="date"
               name="estimated_delivery"
               value={formData.estimated_delivery}
               onChange={handleChange}
-              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
 
           <div className="flex justify-end space-x-3 pt-4">
-            <button
-              type="button"
-              onClick={onCancel}
-              className="px-4 py-2 text-gray-600 hover:text-gray-800"
-            >
+            <Button type="button" variant="outline" onClick={onCancel}>
               Cancelar
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-            >
+            </Button>
+            <Button type="submit" disabled={loading}>
               {loading ? "Guardando..." : "Guardar"}
-            </button>
+            </Button>
           </div>
         </form>
       </div>

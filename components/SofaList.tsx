@@ -3,6 +3,17 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import SofaForm from "./SofaForm";
 
 interface Sofa {
@@ -51,18 +62,33 @@ export default function SofaList() {
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusVariant = (status: string) => {
     switch (status) {
       case "pendiente":
-        return "bg-yellow-100 text-yellow-800";
+        return "secondary";
       case "en_proceso":
-        return "bg-blue-100 text-blue-800";
+        return "default";
       case "completado":
-        return "bg-green-100 text-green-800";
+        return "outline";
       case "entregado":
-        return "bg-purple-100 text-purple-800";
+        return "default";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "secondary";
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case "pendiente":
+        return "Pendiente";
+      case "en_proceso":
+        return "En Proceso";
+      case "completado":
+        return "Completado";
+      case "entregado":
+        return "Entregado";
+      default:
+        return status;
     }
   };
 
@@ -74,19 +100,24 @@ export default function SofaList() {
     }).format(amount);
   };
 
-  if (loading) return <div>Cargando trabajos...</div>;
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center">Cargando trabajos...</div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold">Trabajos de Tapicería</h2>
-        <button
-          onClick={() => setShowForm(true)}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-        >
-          <Plus className="w-5 h-5 mr-2" />
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">Trabajos de Tapicería</h2>
+        <Button onClick={() => setShowForm(true)}>
+          <Plus className="w-4 h-4 mr-2" />
           Nuevo Trabajo
-        </button>
+        </Button>
       </div>
 
       {showForm && (
@@ -99,69 +130,58 @@ export default function SofaList() {
         />
       )}
 
-      <div className="bg-white shadow rounded-lg overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Cliente
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Descripción
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Estado
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Costo Estimado
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Entrega Estimada
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+      <Card>
+        <CardHeader>
+          <CardTitle>Lista de Trabajos</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Cliente</TableHead>
+                <TableHead>Descripción</TableHead>
+                <TableHead>Estado</TableHead>
+                <TableHead>Costo Estimado</TableHead>
+                <TableHead>Entrega Estimada</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {sofas.map((sofa) => (
-                <tr key={sofa.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
+                <TableRow key={sofa.id}>
+                  <TableCell>
                     <div>
-                      <div className="text-sm font-medium text-gray-900">
-                        {sofa.clients.name}
-                      </div>
+                      <div className="font-medium">{sofa.clients.name}</div>
                       <div className="text-sm text-gray-500">
                         {sofa.clients.phone}
                       </div>
                     </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-sm text-gray-900 max-w-xs truncate">
-                      {sofa.description}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
-                        sofa.status
-                      )}`}
-                    >
-                      {sofa.status.replace("_", " ")}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  </TableCell>
+                  <TableCell className="max-w-xs">{sofa.description}</TableCell>
+                  <TableCell>
+                    <Badge variant={getStatusVariant(sofa.status)}>
+                      {getStatusText(sofa.status)}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="font-medium">
                     {formatCurrency(sofa.estimated_cost)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  </TableCell>
+                  <TableCell>
                     {sofa.estimated_delivery
                       ? new Date(sofa.estimated_delivery).toLocaleDateString()
                       : "-"}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+            </TableBody>
+          </Table>
+
+          {sofas.length === 0 && (
+            <div className="text-center py-8 text-gray-500">
+              No hay trabajos registrados
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

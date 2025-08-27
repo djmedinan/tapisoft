@@ -61,6 +61,7 @@ export default function ClientList() {
 
   return (
     <div className="space-y-4">
+      {/* BOTÓN NUEVO CLIENTE - ESTO ES LO QUE FALTA */}
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Clientes</h2>
         <Button onClick={() => setShowForm(true)}>
@@ -69,16 +70,18 @@ export default function ClientList() {
         </Button>
       </div>
 
+      {/* FORMULARIO MODAL */}
       {showForm && (
         <ClientForm
           onSuccess={() => {
             setShowForm(false);
-            fetchClients();
+            fetchClients(); // Esto actualiza la lista después de crear
           }}
           onCancel={() => setShowForm(false)}
         />
       )}
 
+      {/* TABLA DE CLIENTES */}
       <Card>
         <CardHeader>
           <CardTitle>Lista de Clientes</CardTitle>

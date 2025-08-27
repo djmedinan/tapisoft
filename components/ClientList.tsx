@@ -1,122 +1,133 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import ClientForm from "./ClientForm";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
-interface Client {
-  id: string;
-  name: string;
-  email: string | null;
-  phone: string | null;
-  address: string | null;
-  created_at: string;
+interface ClientFormProps {
+  onSuccess: () => void;
+  onCancel: () => void;
 }
 
-export default function ClientList() {
-  const [clients, setClients] = useState<Client[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
+export default function ClientForm({ onSuccess, onCancel }: ClientFormProps) {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
+  });
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    fetchClients();
-  }, []);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
 
-  const fetchClients = async () => {
     try {
+      console.log("Intentando crear cliente:", formData);
+
       const { data, error } = await supabase
         .from("clients")
-        .select("*")
-        .order("created_at", { ascending: false });
+        .insert([formData])
+        .select();
 
-      if (error) throw error;
-      setClients(data || []);
+      if (error) {
+        console.error("Error de Supabase:", error);
+        alert(`Error: ${error.message}`);
+        return;
+      }
+
+      console.log("Cliente creado exitosamente:", data);
+      onSuccess();
     } catch (error) {
-      console.error("Error fetching clients:", error);
+      console.error("Error creating client:", error);
+      alert("Error al crear cliente. Revisa la consola para más detalles.");
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading) {
-    return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="text-center">Cargando clientes...</div>
-        </CardContent>
-      </Card>
-    );
-  }
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
+  };
 
   return (
-    <div className="space-y-4">
-      {/* BOTÓN NUEVO CLIENTE - ESTO ES LO QUE FALTA */}
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Clientes</h2>
-        <Button onClick={() => setShowForm(true)}>
-          <Plus className="w-4 h-4 mr-2" />
-          Nuevo Cliente
-        </Button>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-lg p-6 w-full max-w-md">
+        <h2 className="text-xl font-semibold mb-4">Nuevo Cliente</h2>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">Nombre *</Label>
+            <Input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              required
+              placeholder="Nombre completo del cliente"
+              disabled={loading}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="email@ejemplo.com"
+              disabled={loading}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="phone">Teléfono</Label>
+            <Input
+              type="tel"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              placeholder="+56 9 1234 5678"
+              disabled={loading}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="address">Dirección</Label>
+            <Textarea
+              name="address"
+              value={formData.address}
+              onChange={handleChange}
+              rows={3}
+              placeholder="Dirección completa"
+              disabled={loading}
+            />
+          </div>
+
+          <div className="flex justify-end space-x-3 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              disabled={loading}
+            >
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={loading}>
+              {loading ? "Guardando..." : "Guardar Cliente"}
+            </Button>
+          </div>
+        </form>
       </div>
-
-      {/* FORMULARIO MODAL */}
-      {showForm && (
-        <ClientForm
-          onSuccess={() => {
-            setShowForm(false);
-            fetchClients(); // Esto actualiza la lista después de crear
-          }}
-          onCancel={() => setShowForm(false)}
-        />
-      )}
-
-      {/* TABLA DE CLIENTES */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Lista de Clientes</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nombre</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Teléfono</TableHead>
-                <TableHead>Fecha de Registro</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {clients.map((client) => (
-                <TableRow key={client.id}>
-                  <TableCell className="font-medium">{client.name}</TableCell>
-                  <TableCell>{client.email || "-"}</TableCell>
-                  <TableCell>{client.phone || "-"}</TableCell>
-                  <TableCell>
-                    {new Date(client.created_at).toLocaleDateString()}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-
-          {clients.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
-              No hay clientes registrados
-            </div>
-          )}
-        </CardContent>
-      </Card>
     </div>
   );
 }
